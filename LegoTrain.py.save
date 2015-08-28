@@ -1,15 +1,28 @@
-import RPi.GPIO as GPIO
+#!/usr/bin/python
 
+import RPi.GPIO as GPIO
+import time
+
+# Constants about GPIO pins
+LTrain_PWM_Forward = 24
+LTrain_PWM_Reward = 23
+LTrain_PIN_LED_WH = 25
+LTrain_PIN_LED_IR = 27
+LTrain_PIN_Motor_On = 22
 GPIO.setmode(GPIO.BCM)
 
-class LED:
+GPIO.setup(LTrain_PWM_Forward, GPIO.OUT)
+GPIO.setup(LTrain_PWM_Reward, GPIO.OUT)
+GPIO.setup(LTrain_PIN_LED_WH, GPIO.OUT)
+GPIO.setup(LTrain_PIN_LED_IR, GPIO.OUT)
+GPIO.setup(LTrain_PIN_Motor_On, GPIO.OUT)
+
+class Train_LED:
 	def __init__(self, wh_pin, ir_pin):
 		self.wh_pin = wh_pin
 		self.ir_pin = ir_pin
 		self.wh_led = False
 		self.ir_led = False
-		GPIO.setup(wh_pin, GPIO.OUT)
-		GPIO.setup(ir_pin, GPIO.OUT)
 	def white_led(self, onoff):
 		if onoff is True:
 			if self.ir_led is True:
@@ -25,14 +38,11 @@ class LED:
 		GPIO.output(self.ir_pin, onoff)
 		self.ir_led = onoff		
 
-class Motor:
+class LTrain_Motor:
 	def __init__(self, fw_pin, bw_pin, wakeup_pin):
 		self.pin_forward = fw_pin
 		self.pin_backward = bw_pin
 		self.pin_wakeup = wakeup_pin
-		GPIO.setup(fw_pin, GPIO.OUT)
-		GPIO.setup(bw_pin, GPIO.OUT)
-		GPIO.setup(wakeup_pin, GPIO.OUT)
 		self.motor_fw = GPIO.PWM(fw_pin, 50)
 		self.motor_bw = GPIO.PWM(bw_pin, 50)
 		self.motor_fw.start(0)
@@ -69,5 +79,22 @@ class Motor:
 			self.level_bw = 0
 		GPIO.output(self.pin_wakeup, False)
 
-def cleanup():
-	GPIO.cleanup()
+train_led = LTrain_LED(LTrain_PIN_LED_WH, LTrain_PIN_LED_IR)
+train_motor = LTrain_Motor(LTrain_PWM_Forward, LTrain_PWM_Reward, LTrain_PIN_Motor_On)
+
+# test functions
+
+train_led.white_led(True)
+time.sleep(2)
+train_led.white_led(False)
+time.sleep(2)
+
+train_motor.go(20)
+time.sleep(2)
+train_motor.go(0)
+time.sleep(2)
+train_motor.go(-20)
+time.sleep(2)
+train_motor.stop()
+
+GPIO.cleanup()
